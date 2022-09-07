@@ -38,7 +38,12 @@ readonly PROFILE_BACKUP_SUFFIX=".backup-before-nix"
 readonly PROFILE_NIX_FILE="$NIX_ROOT/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
 
 # Fish has different syntax than zsh/bash, treat it separate
-readonly PROFILE_TARGETS_FISH=("/etc/fish/conf.d/nix.fish" "/usr/local/etc/fish/conf.d/nix.fish" "/opt/homebrew/etc/fish/conf.d/nix.fish")
+readonly PROFILE_TARGETS_FISH=(
+    "/etc/fish/conf.d/nix.fish" # standard $__fish_sysconf_dir
+    "/usr/local/etc/fish/conf.d/nix.fish" # their installer .pkg for macos's $__fish_sysconf_dir
+    "/opt/homebrew/etc/fish/conf.d/nix.fish" # homebrew's $__fish_sysconf_dir
+    "/opt/local/etc/fish/conf.d/nix.fish" # macports' $__fish_sysconf_dir
+)
 readonly PROFILE_NIX_FILE_FISH="$NIX_ROOT/var/nix/profiles/default/etc/profile.d/nix-daemon.fish"
 
 readonly NIX_INSTALLED_NIX="@nix@"
