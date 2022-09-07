@@ -867,6 +867,7 @@ configure_shell_profile() {
         fi
     done
 
+    # Fish requires a profile script with differing syntax
     for profile_target in "${PROFILE_TARGETS_FISH[@]}"; do
         if [ -e "$profile_target" ]; then
             _sudo "to back up your current $profile_target to $profile_target$PROFILE_BACKUP_SUFFIX" \
@@ -886,7 +887,6 @@ configure_shell_profile() {
                         tee -a "$profile_target"
         fi
     done
-    # Fish requires a profile script with differing syntax
 
     # TODO: should we suggest '. $PROFILE_NIX_FILE'? It would get them on
     # their way less disruptively, but a counter-argument is that they won't
