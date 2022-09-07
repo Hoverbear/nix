@@ -209,6 +209,7 @@ if [ -z "$NIX_INSTALLER_NO_CHANNEL_ADD" ]; then
 fi
 
 added=
+p=
 p_sh=$HOME/.nix-profile/etc/profile.d/nix.sh
 p_fish=$HOME/.nix-profile/etc/profile.d/nix.fish
 if [ -z "$NIX_INSTALLER_NO_MODIFY_PROFILE" ]; then
@@ -232,6 +233,7 @@ if [ -z "$NIX_INSTALLER_NO_MODIFY_PROFILE" ]; then
                 printf '\nif [ -e %s ]; then . %s; fi # added by Nix installer\n' "$p_sh" "$p_sh" >> "$fn"
             fi
             added=1
+            p=${p_sh}
             break
         fi
     done
@@ -243,6 +245,7 @@ if [ -z "$NIX_INSTALLER_NO_MODIFY_PROFILE" ]; then
                 printf '\nif test -e %s; . %s; end # added by Nix installer\n' "$p_fish" "$p_fish" >> "$fn"
             fi
             added=1
+            p=${p_fish}
             break
         fi
     done
