@@ -24,7 +24,7 @@ else if test -e "$NIX_LINK/etc/ca-bundle.crt" # old cacert in Nix profile
   set --export NIX_SSL_CERT_FILE "$NIX_LINK/etc/ca-bundle.crt"
 else
   # Fall back to what is in the nix profiles, favouring whatever is defined last.
-  for i in $NIX_PROFILES; do
+  for i in $NIX_PROFILES
     if test -e "$i/etc/ssl/certs/ca-bundle.crt"
       set --export NIX_SSL_CERT_FILE "$i/etc/ssl/certs/ca-bundle.crt"
     end

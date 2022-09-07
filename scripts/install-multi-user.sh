@@ -38,7 +38,7 @@ readonly PROFILE_BACKUP_SUFFIX=".backup-before-nix"
 readonly PROFILE_NIX_FILE="$NIX_ROOT/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
 
 # Fish has different syntax than zsh/bash, treat it separate
-readonly PROFILE_TARGET_FISH="/etc/fish/config.fish"
+readonly PROFILE_TARGETS_FISH=("/etc/fish/config.fish" "/usr/local/etc/fish")
 readonly PROFILE_NIX_FILE_FISH="$NIX_ROOT/var/nix/profiles/default/etc/profile.d/nix-daemon.fish"
 
 readonly NIX_INSTALLED_NIX="@nix@"
@@ -837,7 +837,7 @@ fish_source_lines() {
     cat <<EOF
 
 # Nix
-if test -e $PROFILE_NIX_FILE_FISH
+if test -e '$PROFILE_NIX_FILE_FISH'
   . '$PROFILE_NIX_FILE_FISH'
 end
 # End Nix
@@ -846,7 +846,7 @@ EOF
 }
 
 configure_shell_profile() {
-    task "Setting up shell profiles: ${PROFILE_TARGETS[*]}"
+    task "Setting up shell profiles: ${PROFILE_TARGETS[*]}  ${PROFILE_TARGETS_FISH[*]}"
     for profile_target in "${PROFILE_TARGETS[@]}"; do
         if [ -e "$profile_target" ]; then
             _sudo "to back up your current $profile_target to $profile_target$PROFILE_BACKUP_SUFFIX" \
@@ -866,24 +866,28 @@ configure_shell_profile() {
                         tee -a "$profile_target"
         fi
     done
-    # Fish requires a profile script with differing syntax
-    if [ -e "$PROFILE_TARGET_FISH" ]; then
-        _sudo "to back up your current $PROFILE_TARGET_FISH to $PROFILE_TARGET_FISH$PROFILE_BACKUP_SUFFIX" \
-                cp "$PROFILE_TARGET_FISH" "$PROFILE_TARGET_FISH$PROFILE_BACKUP_SUFFIX"
-    else
-        # try to create the file if its directory exists
-        target_dir="$(dirname "$PROFILE_TARGET_FISH")"
-        if [ -d "$target_dir" ]; then
-            _sudo "to create a stub $PROFILE_TARGET_FISH which will be updated" \
-                touch "$PROFILE_TARGET_FISH"
-        fi
-    fi
 
-    if [ -e "$PROFILE_TARGET_FISH" ]; then
-        fish_source_lines \
-            | _sudo "extend your $PROFILE_TARGET_FISH with nix-daemon settings" \
-                    tee -a "$PROFILE_TARGET_FISH"
-    fi
+    for profile_target in "${PROFILE_TARGETS_FISH[@]}"; do
+        if [ -e "$profile_target" ]; then
+            _sudo "to back up your current $profile_target to $profile_target$PROFILE_BACKUP_SUFFIX" \
+                  cp "$profile_target" "$profile_target$PROFILE_BACKUP_SUFFIX"
+        else
+            # try to create the file if its directory exists
+            target_dir="$(dirname "$profile_target")"
+            if [ -d "$target_dir" ]; then
+                _sudo "to create a stub $profile_target which will be updated" \
+                    touch "$profile_target"
+            fi
+        fi
+
+        if [ -e "$profile_target" ]; then
+            fish_source_lines \
+                | _sudo "extend your $profile_target with nix-daemon settings" \
+                        tee -a "$profile_target"
+        fi
+    done
+    # Fish requires a profile script with differing syntax
+
     # TODO: should we suggest '. $PROFILE_NIX_FILE'? It would get them on
     # their way less disruptively, but a counter-argument is that they won't
     # immediately notice if something didn't get set up right?
