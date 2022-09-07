@@ -37,6 +37,10 @@ readonly PROFILE_TARGETS=("/etc/bashrc" "/etc/profile.d/nix.sh" "/etc/zshrc" "/e
 readonly PROFILE_BACKUP_SUFFIX=".backup-before-nix"
 readonly PROFILE_NIX_FILE="$NIX_ROOT/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
 
+# Fish has different syntax than zsh/bash, treat it separate
+readonly PROFILE_TARGET_FISH="/etc/fish/config.fish"
+readonly PROFILE_NIX_FILE_FISH="$NIX_ROOT/var/nix/profiles/default/etc/profile.d/nix-daemon.fish"
+
 readonly NIX_INSTALLED_NIX="@nix@"
 readonly NIX_INSTALLED_CACERT="@cacert@"
 #readonly NIX_INSTALLED_NIX="/nix/store/j8dbv5w6jl34caywh2ygdy88knx1mdf7-nix-2.3.6"
@@ -828,6 +832,19 @@ fi
 EOF
 }
 
+# Fish has differing syntax
+fish_source_lines() {
+    cat <<EOF
+
+# Nix
+if test -e $PROFILE_NIX_FILE_FISH
+  . '$PROFILE_NIX_FILE_FISH'
+end
+# End Nix
+
+EOF
+}
+
 configure_shell_profile() {
     task "Setting up shell profiles: ${PROFILE_TARGETS[*]}"
     for profile_target in "${PROFILE_TARGETS[@]}"; do
@@ -849,6 +866,24 @@ configure_shell_profile() {
                         tee -a "$profile_target"
         fi
     done
+    # Fish requires a profile script with differing syntax
+    if [ -e "$PROFILE_TARGET_FISH" ]; then
+        _sudo "to back up your current $PROFILE_TARGET_FISH to $PROFILE_TARGET_FISH$PROFILE_BACKUP_SUFFIX" \
+                cp "$PROFILE_TARGET_FISH" "$PROFILE_TARGET_FISH$PROFILE_BACKUP_SUFFIX"
+    else
+        # try to create the file if its directory exists
+        target_dir="$(dirname "$PROFILE_TARGET_FISH")"
+        if [ -d "$target_dir" ]; then
+            _sudo "to create a stub $PROFILE_TARGET_FISH which will be updated" \
+                touch "$PROFILE_TARGET_FISH"
+        fi
+    fi
+
+    if [ -e "$PROFILE_TARGET_FISH" ]; then
+        fish_source_lines \
+            | _sudo "extend your $PROFILE_TARGET_FISH with nix-daemon settings" \
+                    tee -a "$PROFILE_TARGET_FISH"
+    fi
     # TODO: should we suggest '. $PROFILE_NIX_FILE'? It would get them on
     # their way less disruptively, but a counter-argument is that they won't
     # immediately notice if something didn't get set up right?
