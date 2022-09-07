@@ -240,7 +240,7 @@ if [ -z "$NIX_INSTALLER_NO_MODIFY_PROFILE" ]; then
         if [ -w "$fn" ]; then
             if ! grep -q "$p_fish" "$fn"; then
                 echo "modifying $fn..." >&2
-                printf '\nif [ -e %s ]; then . %s; fi # added by Nix installer\n' "$p_fish" "$p_fish" >> "$fn"
+                printf '\nif test -e %s; . %s; end # added by Nix installer\n' "$p_fish" "$p_fish" >> "$fn"
             fi
             added=1
             break
