@@ -237,18 +237,19 @@ if [ -z "$NIX_INSTALLER_NO_MODIFY_PROFILE" ]; then
             break
         fi
     done
-    for i in .config/fish/config.fish; do
-        fn="$HOME/$i"
-        if [ -w "$fn" ]; then
-            if ! grep -q "$p_fish" "$fn"; then
-                echo "modifying $fn..." >&2
-                printf '\nif test -e %s; . %s; end # added by Nix installer\n' "$p_fish" "$p_fish" >> "$fn"
-            fi
-            added=1
-            p=${p_fish}
-            break
+
+    if [ -d "$HOME/.config/fish" ]; then
+        fishdir=$HOME/.config/fish/conf.d
+        if [ ! -d "$fishdir" ]; then
+            mkdir -p "$fishdir"
         fi
-    done
+
+        fn="$HOME/.config/fish/conf.d/nix.fish"
+        echo "placing $fn..." >&2
+        printf '\nif test -e %s; . %s; end # added by Nix installer\n' "$p_fish" "$p_fish" > "$fn"
+    fi
+    added=1
+    p=${p_fish}
 fi
 
 if [ -z "$added" ]; then
