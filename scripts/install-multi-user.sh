@@ -38,11 +38,12 @@ readonly PROFILE_BACKUP_SUFFIX=".backup-before-nix"
 readonly PROFILE_NIX_FILE="$NIX_ROOT/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
 
 # Fish has different syntax than zsh/bash, treat it separate
-readonly PROFILE_TARGETS_FISH=(
-    "/etc/fish/conf.d/nix.fish" # standard $__fish_sysconf_dir
-    "/usr/local/etc/fish/conf.d/nix.fish" # their installer .pkg for macos's $__fish_sysconf_dir
-    "/opt/homebrew/etc/fish/conf.d/nix.fish" # homebrew's $__fish_sysconf_dir
-    "/opt/local/etc/fish/conf.d/nix.fish" # macports' $__fish_sysconf_dir
+readonly PROFILE_FISH_SUFFIX="conf.d/nix.fish"
+readonly PROFILE_FISH_PREFIXES=( # each of these are suffixed with
+    "/etc/fish"              # standard $__fish_sysconf_dir
+    "/usr/local/etc/fish"    # their installer .pkg for macos's $__fish_sysconf_dir
+    "/opt/homebrew/etc/fish" # homebrew's $__fish_sysconf_dir
+    "/opt/local/etc/fish"    # macports' $__fish_sysconf_dir
 )
 readonly PROFILE_NIX_FILE_FISH="$NIX_ROOT/var/nix/profiles/default/etc/profile.d/nix-daemon.fish"
 
@@ -851,7 +852,7 @@ EOF
 }
 
 configure_shell_profile() {
-    task "Setting up shell profiles: ${PROFILE_TARGETS[*]}  ${PROFILE_TARGETS_FISH[*]}"
+    task "Setting up shell profiles: ${PROFILE_TARGETS[*]}"
     for profile_target in "${PROFILE_TARGETS[@]}"; do
         if [ -e "$profile_target" ]; then
             _sudo "to back up your current $profile_target to $profile_target$PROFILE_BACKUP_SUFFIX" \
@@ -872,25 +873,24 @@ configure_shell_profile() {
         fi
     done
 
-    # Fish requires a profile script with differing syntax
-    for profile_target in "${PROFILE_TARGETS_FISH[@]}"; do
-        if [ -e "$profile_target" ]; then
-            _sudo "to back up your current $profile_target to $profile_target$PROFILE_BACKUP_SUFFIX" \
-                  cp "$profile_target" "$profile_target$PROFILE_BACKUP_SUFFIX"
-        else
-            # try to create the file if its directory exists
-            target_dir="$(dirname "$profile_target")"
-            if [ -d "$target_dir" ]; then
-                _sudo "to create a stub $profile_target which will be updated" \
-                    touch "$profile_target"
-            fi
+    task "Setting up shell profiles for Fish with with ${PROFILE_FISH_SUFFIX} inside ${PROFILE_FISH_PREFIXES[*]}"
+    for fish_prefix in "${PROFILE_FISH_PREFIXES[@]}"; do
+        if [ ! -d "$fish_prefix" ]; then
+            # this specific prefix (ie: /etc/fish) is very likely to exist
+            # if Fish is installed with this sysconfdir.
+            continue
         fi
 
-        if [ -e "$profile_target" ]; then
-            fish_source_lines \
-                | _sudo "extend your $profile_target with nix-daemon settings" \
-                        tee -a "$profile_target"
+        profile_target="${fish_prefix}/${PROFILE_FISH_SUFFIX}"
+        conf_dir=$(dirname "$profile_target")
+        if [ ! -d "$conf_dir" ]; then
+            _sudo "create $conf_dir for our Fish hook" \
+                mkdir "$conf_dir"
         fi
+
+        fish_source_lines \
+            | _sudo "write nix-daemon settings to $profile_target" \
+                    tee "$profile_target"
     done
 
     # TODO: should we suggest '. $PROFILE_NIX_FILE'? It would get them on
