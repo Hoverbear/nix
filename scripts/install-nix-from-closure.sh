@@ -244,7 +244,7 @@ if [ -z "$NIX_INSTALLER_NO_MODIFY_PROFILE" ]; then
             mkdir -p "$fishdir"
         fi
 
-        fn="$HOME/.config/fish/conf.d/nix.fish"
+        fn="$fishdir/nix.fish"
         echo "placing $fn..." >&2
         printf '\nif test -e %s; . %s; end # added by Nix installer\n' "$p_fish" "$p_fish" > "$fn"
     fi
