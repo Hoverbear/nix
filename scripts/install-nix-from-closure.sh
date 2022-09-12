@@ -222,6 +222,7 @@ if [ -z "$NIX_INSTALLER_NO_MODIFY_PROFILE" ]; then
                 printf '\nif [ -e %s ]; then . %s; fi # added by Nix installer\n' "$p_sh" "$p_sh" >> "$fn"
             fi
             added=1
+            p=${p_sh}
             break
         fi
     done
@@ -247,9 +248,11 @@ if [ -z "$NIX_INSTALLER_NO_MODIFY_PROFILE" ]; then
         fn="$fishdir/nix.fish"
         echo "placing $fn..." >&2
         printf '\nif test -e %s; . %s; end # added by Nix installer\n' "$p_fish" "$p_fish" > "$fn"
+        added=1
+        p=${p_fish}
     fi
-    added=1
-    p=${p_fish}
+else
+    p=${p_sh}
 fi
 
 if [ -z "$added" ]; then

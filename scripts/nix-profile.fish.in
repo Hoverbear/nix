@@ -1,7 +1,6 @@
 if test -n "$HOME" && test -n "$USER"
 
     # Set up the per-user profile.
-    # This part should be kept in sync with nixpkgs:nixos/modules/programs/shell.nix
 
     set NIX_LINK $HOME/.nix-profile
 
@@ -31,6 +30,6 @@ if test -n "$HOME" && test -n "$USER"
     # which is in the $PATH. For more info, run `manpath -d`.
     set --export --prepend --path MANPATH "$NIX_LINK/share/man"
 
-    set --export --prepend --path PATH "$NIX_LINK/bin"
+    fish_add_path --prepend --global "$NIX_LINK/bin"
     set --erase NIX_LINK
 end
