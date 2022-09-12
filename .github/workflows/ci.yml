@@ -81,7 +81,7 @@ jobs:
       with:
         install_url: '${{needs.installer.outputs.installerURL}}'
         install_options: "--tarball-url-prefix https://${{ env.CACHIX_NAME }}.cachix.org/serve"
-    - run: sudo apt install fish
+    - run: sudo apt install fish zsh
       if: matrix.os == 'ubuntu-latest'
     - run: brew install fish
       if: matrix.os == 'macos-latest'
