@@ -31,5 +31,5 @@ else
   end
 end
 
-set --export --prepend --path PATH "@localstatedir@/nix/profiles/default/bin"
-set --export --prepend --path PATH "$HOME/.nix-profile/bin"
+fish_add_path --prepend --global "@localstatedir@/nix/profiles/default/bin"
+fish_add_path --prepend --global "$HOME/.nix-profile/bin"
