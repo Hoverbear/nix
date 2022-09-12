@@ -73,6 +73,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
+        shell: [bash, sh, zsh, fish]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -81,7 +82,12 @@ jobs:
       with:
         install_url: '${{needs.installer.outputs.installerURL}}'
         install_options: "--tarball-url-prefix https://${{ env.CACHIX_NAME }}.cachix.org/serve"
+    - run: sudo apt install ${{matrix.shell}} --yes
+      if: matrix.os == 'ubuntu-latest' && matrix.shell != 'bash' && matrix.shell != 'sh'
+    - run: brew install ${{matrix.shell}}
+      if: matrix.os == 'macos-latest' && matrix.shell != 'bash' && matrix.shell != 'sh'
     - run: nix-instantiate -E 'builtins.currentTime' --eval
+      shell: ${{ matrix.shell }}
 
   docker_push_image:
     needs: [check_secrets, tests]
