@@ -86,8 +86,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest' && matrix.shell != 'bash' && matrix.shell != 'sh'
     - run: brew install ${{matrix.shell}}
       if: matrix.os == 'macos-latest' && matrix.shell != 'bash' && matrix.shell != 'sh'
-    - run: nix-instantiate -E 'builtins.currentTime' --eval
-      shell: matrix.shell
+    - run: exec ${{ matrix.shell }} -c "nix-instantiate -E 'builtins.currentTime' --eval"
 
   docker_push_image:
     needs: [check_secrets, tests]
