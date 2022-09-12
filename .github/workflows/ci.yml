@@ -73,7 +73,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        shell: [bash, sh, zsh, fish]
+        shell: ['bash', 'sh', 'zsh', 'fish']
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -87,7 +87,7 @@ jobs:
     - run: brew install ${{matrix.shell}}
       if: matrix.os == 'macos-latest' && matrix.shell != 'bash' && matrix.shell != 'sh'
     - run: nix-instantiate -E 'builtins.currentTime' --eval
-      shell: '${{ matrix.shell }}'
+      shell: matrix.shell
 
   docker_push_image:
     needs: [check_secrets, tests]
